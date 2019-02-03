@@ -1,0 +1,15 @@
+[Unit]
+Description = SampleApp
+After = network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+
+WorkingDirectory = /home/ubuntu/django-rest-swagger/example_app
+ExecStart =  /home/ubuntu/.local/bin/gunicorn -b 0.0.0.0:8000 tutorial.wsgi:application
+ExecReload = /bin/kill -s HUP $MAINPID
+ExecStop = /bin/kill -s TERM $MAINPID
+
+[Install]
+WantedBy = multi-user.target

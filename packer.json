@@ -1,0 +1,62 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-east-1",
+    "source_ami_filter": {
+      "filters": {
+      "virtualization-type": "hvm",
+      "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+      "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "instance_type": "t2.micro",
+    "ssh_username": "ubuntu",
+    "ami_name": "packer-example {{timestamp}}"
+  }],
+  "provisioners": [
+	  {
+		  "type":"file",
+		  "source":"systemd/sampleapp.service",
+		  "destination":"~/sampleapp.service"
+	  },
+	  {
+		  "type":"file",
+		  "source":"rmstoys.conf",
+		  "destination":"~/rmstoys.conf"
+	  },
+	  {
+		  "type":"file",
+		  "source":"Todo.tar",
+		  "destination":"~/Todo.tar"
+	  },
+	  {
+		  "type":"shell",
+		  "inline": [ "sudo apt-get -y update",
+			      "sudo apt-get -y install python3 python3-pip nginx",
+			      "git clone https://github.com/aws/amazon-cognito-auth-js.git",
+				"pip3 install wheel gunicorn",
+				"tar -xvf Todo.tar",
+				"pip3 install -r requirements.txt",
+				"cd amazon-cognito-auth-js/sample && ln -s ../dist/ dist",
+				"cd && git clone https://github.com/marcgibbons/django-rest-swagger.git",
+				"cd django-rest-swagger",
+				"pip3 install -r requirements.txt",
+				"cd example_app",
+				"python3 manage.py migrate --noinput --run-syncdb",
+				"sudo mv ~/sampleapp.service /etc/systemd/system/sampleapp.service",
+				"sudo chmod 755 /etc/systemd/system/sampleapp.service",
+				"sudo systemctl enable sampleapp.service",
+				"sudo mv ~/rmstoys.conf /etc/nginx/sites-enabled",
+				"sudo rm /etc/nginx/sites-enabled/default"
+		  ]
+	  }]
+
+}

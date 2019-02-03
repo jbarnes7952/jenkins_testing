@@ -1,0 +1,3 @@
+terraform state show module.compute.aws_instance.nginx | grep "public_ip "| sed 's/^.*= //' > instance_ip
+terraform state show tls_private_key.nginx-provisioner | sed -n '/-----BEGIN RSA/,/^-----END/p' | sed '1s/.*/-----BEGIN RSA PRIVATE KEY-----/' > private_key.pem
+ssh -i private_key.pem ubuntu@$(cat instance_ip)
